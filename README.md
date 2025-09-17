@@ -59,6 +59,24 @@ O projeto foi estruturado com base em princípios de design SOLID e padrões de 
 
     A aplicação JavaFX será iniciada, e o servidor da API começará a rodar na porta `7070`.
 
+    ### Diagrama de Estados
+
+O comportamento do hidrômetro é gerenciado por um Padrão de Projeto State. O diagrama a seguir ilustra os diferentes estados e as transições entre eles.
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> OperandoComAgua : Simulação iniciada
+
+    state "Operando com Água" as OperandoComAgua
+    state "Sem Água" as SemAgua
+    state "Operando com Ar" as OperandoComAr
+
+    OperandoComAgua --> SemAgua : Ocorre falta d'água (evento aleatório)
+    SemAgua --> OperandoComAr : Fornecimento restabelecido
+    OperandoComAr --> OperandoComAgua : Ar purgado da tubulação
+```
+
 ## 📡 Endpoints da API
 
 A API REST fornece acesso em tempo real aos dados do simulador.
