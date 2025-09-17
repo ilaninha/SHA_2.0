@@ -1,0 +1,57 @@
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+# Descomente a linha abaixo se você usa o Maven Wrapper e não quer commitar o JAR do wrapper
+#.mvn/wrapper/maven-wrapper.jar
+
+# IntelliJ
+.idea/             # Pasta de configuração do IntelliJ
+*.iml              # Arquivos de módulo do IntelliJ
+*.iws              # Arquivo de workspace do IntelliJ
+*.ipr              # Arquivo de projeto do IntelliJ (mais antigo)
+*.classpath        # Configurações de classpath do Eclipse/outros
+*.project          # Configurações de projeto do Eclipse/outros
+.vscode/           # Se você usar VS Code em algum momento
+*.swp              # Arquivos de swap do Vim
+
+# Sistema Operacional
+.DS_Store          # Arquivos do macOS
+Thumbs.db          # Arquivos do Windows
+Desktop.ini        # Arquivos do Windows
+
+# Arquivos de configurações sensíveis ou locais
+*.env
+.env.*
+config.local.properties
+application*.properties.orig
+application*.yml.orig
