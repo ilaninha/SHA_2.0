@@ -86,9 +86,5 @@ A API REST fornece acesso em tempo real aos dados do simulador.
 | `/api/data` | `GET`       | Retorna os dados de medição primários.      | `{"consumoTotalM3":1200.123, "pressaoAtualKpa":345.6, "estado":"EstadoComAgua"}` |
 | `/api/status` | `GET`       | Retorna o estado operacional atual.     | `{"consumoTotalM3":1200.123, "pressaoAtualKpa":345.6, "estado":"EstadoComAgua"}` |
 
-## 📄 Licença
-
-Este projeto está licenciado sob a Licença MIT.
-
 ---
 Feito por ilaninha.
