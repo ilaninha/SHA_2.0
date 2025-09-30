@@ -1,3 +1,13 @@
+' ============================================================================
+' TUTORIAL PARA GERAR O DIAGRAMA
+' ============================================================================
+' 1. Copie todo este código.
+' 2. Acesse o site: https://www.plantuml.com/plantuml/
+' 3. Cole o código na área de edição.
+' 4. Clique em "Refresh" ou aguarde carregar para visualizar o diagrama.
+' 5. Você pode exportar a imagem como PNG, SVG ou PDF diretamente do site.
+' ============================================================================
+
 @startuml
 !theme plain
 
@@ -15,6 +25,7 @@ class MainApp {
   public stop(): void
 }
 Application <|-- MainApp
+
 class ControladorAPI {
   ~ hidrometro: Hidrometro
   private app: Javalin
@@ -23,6 +34,7 @@ class ControladorAPI {
   public iniciar(): void
   public parar(): void
 }
+
 class DadosHidrometro {
   ~ consumoTotalM3: double
   ~ pressaoAtualKpa: double
@@ -35,6 +47,7 @@ class DadosHidrometro {
   public getPressaoAtualKpa(): double
   public getEstado(): String
 }
+
 class Hidrometro {
   private estadoAtual: EstadoHidrometro
   ~ observers: List<Display>
@@ -57,11 +70,12 @@ class Hidrometro {
   ~ if(estadoAtual instanceof EstadoComAgua && random.nextDouble(): água
   ~ setEstado(new EstadoSemAgua(this): tick
   public getDadosAtuais(): DadosHidrometro
-  ~ DadosHidrometro(consumoTotalM3,                 pressaoAtualKpa,                 estadoAtual.getClass(): new
+  ~ DadosHidrometro(consumoTotalM3, pressaoAtualKpa, estadoAtual.getClass(): new
   public getVazaoLPS(): double
   public adicionarConsumo(double volumeAdicionalM3): void
   public getPressaoAtualKpa(): double
 }
+
 class EstadoComAgua {
   ~ hidrometro: Hidrometro
   ~ vazaoM3s: double
@@ -70,6 +84,7 @@ class EstadoComAgua {
   public medirFluxo(double deltaTime): void
 }
 EstadoHidrometro <|.. EstadoComAgua
+
 class EstadoComAr {
   ~ hidrometro: Hidrometro
   ~ random: Random
@@ -84,9 +99,11 @@ class EstadoComAr {
   ~ if(tempoComAr > 3 + random.nextInt(5): normal
 }
 EstadoHidrometro <|.. EstadoComAr
+
 interface EstadoHidrometro {
   ~ medirFluxo(double deltaTime): void
 }
+
 class EstadoSemAgua {
   ~ hidrometro: Hidrometro
   ~ random: Random
@@ -97,6 +114,7 @@ class EstadoSemAgua {
   ~ if(tempoSemAgua > 5 + random.nextInt(10): ar
 }
 EstadoHidrometro <|.. EstadoSemAgua
+
 class Display {
   ~ stage: Stage
   ~ consumoText: Text
@@ -145,4 +163,5 @@ class Display {
   ~ Scene(root, 400, 500): new
   public update(DadosHidrometro dados): void
 }
+
 @enduml
