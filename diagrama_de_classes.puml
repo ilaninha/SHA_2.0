@@ -1,0 +1,148 @@
+@startuml
+!theme plain
+
+class MainApp {
+  private hidrometro: Hidrometro
+  private controladorAPI: ControladorAPI
+  private simulationExecutor: ScheduledExecutorService
+  ~ display: Display
+  ~ main(String[] args): void
+  public start(Stage primaryStage): void
+  ~ Hidrometro(): new
+  ~ Display(primaryStage): new
+  ~ ControladorAPI(hidrometro): new
+  ~ 100ms(10x por segundo): cada
+  public stop(): void
+}
+Application <|-- MainApp
+class ControladorAPI {
+  ~ hidrometro: Hidrometro
+  private app: Javalin
+  ~ app: DTOs
+  ~ ControladorAPI(Hidrometro hidrometro): public
+  public iniciar(): void
+  public parar(): void
+}
+class DadosHidrometro {
+  ~ consumoTotalM3: double
+  ~ pressaoAtualKpa: double
+  ~ estado: String
+  ~ consumoTotalM3: return
+  ~ pressaoAtualKpa: return
+  ~ estado: return
+  ~ DadosHidrometro(double consumoTotalM3, double pressaoAtualKpa, String estado): public
+  public getConsumoTotalM3(): double
+  public getPressaoAtualKpa(): double
+  public getEstado(): String
+}
+class Hidrometro {
+  private estadoAtual: EstadoHidrometro
+  ~ observers: List<Display>
+  ~ random: Random
+  private consumoTotalM3: double
+  private pressaoAtualKpa: double
+  ~ pressaoBaseKpa: double
+  ~ vazaoLPS: double
+  ~ dados: DadosHidrometro
+  ~ flutuacao: double
+  ~ vazaoLPS: return
+  ~ pressaoAtualKpa: return
+  ~ Random(): new
+  ~ Hidrometro(): public
+  ~ EstadoComAgua(this): new
+  public setEstado(EstadoHidrometro novoEstado): void
+  public adicionarObserver(Display observer): void
+  public notificarObservers(): void
+  public simularPassagemDeTempo(double deltaTime): void
+  ~ if(estadoAtual instanceof EstadoComAgua && random.nextDouble(): água
+  ~ setEstado(new EstadoSemAgua(this): tick
+  public getDadosAtuais(): DadosHidrometro
+  ~ DadosHidrometro(consumoTotalM3,                 pressaoAtualKpa,                 estadoAtual.getClass(): new
+  public getVazaoLPS(): double
+  public adicionarConsumo(double volumeAdicionalM3): void
+  public getPressaoAtualKpa(): double
+}
+class EstadoComAgua {
+  ~ hidrometro: Hidrometro
+  ~ vazaoM3s: double
+  ~ volumeAdicional: double
+  ~ EstadoComAgua(Hidrometro hidrometro): public
+  public medirFluxo(double deltaTime): void
+}
+EstadoHidrometro <|.. EstadoComAgua
+class EstadoComAr {
+  ~ hidrometro: Hidrometro
+  ~ random: Random
+  private tempoComAr: double
+  ~ fatorPressao: double
+  ~ vazaoFicticiaLPS: double
+  ~ vazaoM3s: double
+  ~ volumeAdicional: double
+  ~ Random(): new
+  ~ EstadoComAr(Hidrometro hidrometro): public
+  public medirFluxo(double deltaTime): void
+  ~ if(tempoComAr > 3 + random.nextInt(5): normal
+}
+EstadoHidrometro <|.. EstadoComAr
+interface EstadoHidrometro {
+  ~ medirFluxo(double deltaTime): void
+}
+class EstadoSemAgua {
+  ~ hidrometro: Hidrometro
+  ~ random: Random
+  private tempoSemAgua: double
+  ~ Random(): new
+  ~ EstadoSemAgua(Hidrometro hidrometro): public
+  public medirFluxo(double deltaTime): void
+  ~ if(tempoSemAgua > 5 + random.nextInt(10): ar
+}
+EstadoHidrometro <|.. EstadoSemAgua
+class Display {
+  ~ stage: Stage
+  ~ consumoText: Text
+  ~ pressaoText: Text
+  ~ estadoText: Text
+  ~ consumoDigitalText: Text
+  private ponteiroLitros: Line
+  private ponteiroDecimosDeLitros: Line
+  private rotLitros: Rotate
+  private rotDecimosDeLitros: Rotate
+  ~ root: VBox
+  ~ comprimentoPonteiro: double
+  ~ meterPane: StackPane
+  ~ basePath: String
+  ~ baseStream: InputStream
+  ~ baseImage: Image
+  ~ baseView: ImageView
+  ~ espessuraPonteiro: double
+  ~ infoBox: VBox
+  ~ scene: Scene
+  ~ consumo: double
+  ~ metrosCubicos: int
+  ~ consumoEmLitros: double
+  ~ valLitros: double
+  ~ valDecimosDeLitros: double
+  ~ anguloLitros: double
+  ~ anguloDecimos: double
+  ~ Text(): new
+  ~ Text(): new
+  ~ Text(): new
+  ~ Text(): new
+  ~ Display(Stage stage): public
+  private initUI(): void
+  ~ VBox(15): new
+  ~ StackPane(): new
+  ~ NullPointerException("Não foi possível encontrar o arquivo de imagem base. Verifique a pasta 'src/main/resources/images'"): new
+  ~ Image(baseStream): new
+  ~ ImageView(baseImage): new
+  ~ Line(0, 0, 0, comprimentoPonteiro): new
+  ~ Line(0, 0, 0, comprimentoPonteiro): new
+  ~ LITROS(Superior Direito): DE
+  ~ LITROS(Inferior Esquerdo): de
+  ~ Rotate(0, 0, comprimentoPonteiro): new
+  ~ Rotate(0, 0, comprimentoPonteiro): new
+  ~ VBox(5): new
+  ~ Scene(root, 400, 500): new
+  public update(DadosHidrometro dados): void
+}
+@enduml
