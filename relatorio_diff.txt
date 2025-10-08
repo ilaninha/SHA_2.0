@@ -1,0 +1,552 @@
+diff --git a/README.md b/README.md
+index 9985f15..b4e28ce 100644
+--- a/README.md
++++ b/README.md
+@@ -1,12 +1,11 @@
+ # Simulador de Hidrômetro Analógico
+-## SHA-2.0
++
+ ![Java](https://img.shields.io/badge/Java-17-blue.svg) ![Maven](https://img.shields.io/badge/Maven-3.8-red.svg) ![JavaFX](https://img.shields.io/badge/JavaFX-17-orange.svg) ![Javalin](https://img.shields.io/badge/Javalin-5.6-brightgreen.svg)
+ 
+ > Software para simular o funcionamento de um medidor de água analógico. O propósito principal é fornecer uma interface visual e uma API REST para que outros softwares possam consumir dados de medição sem depender de um hardware real.
+ 
+-Este projeto foi desenvolvido como uma solução robusta para simular as diversas condições de operação de um hidrômetro, incluindo fluxo normal, falta de água e passagem de ar.
+-
+-![Screenshot do Simulador](src/main/resources/com/meu_pacote/images/hidrometro-base.png)
++Aplicação **orientada a objetos em Java** que simula o funcionamento de um hidrômetro residencial, exibindo **vazão, volume e pressão em tempo real**.  
++Projeto acadêmico desenvolvido na disciplina **Padrões de Projeto — IFPB**.
+ 
+ ## ✨ Funcionalidades
+ 
+@@ -87,4 +86,4 @@ A API REST fornece acesso em tempo real aos dados do simulador.
+ | `/api/status` | `GET`       | Retorna o estado operacional atual.     | `{"consumoTotalM3":1200.123, "pressaoAtualKpa":345.6, "estado":"EstadoComAgua"}` |
+ 
+ ---
+-Feito por ilaninha.
++Feito por Ilana Costa.
+\ No newline at end of file
+diff --git a/diagrama_de_classes.puml b/diagrama_de_classes.puml
+new file mode 100644
+index 0000000..f413560
+--- /dev/null
++++ b/diagrama_de_classes.puml
+@@ -0,0 +1,167 @@
++' ============================================================================
++' TUTORIAL PARA GERAR O DIAGRAMA
++' ============================================================================
++' 1. Copie todo este código.
++' 2. Acesse o site: https://www.plantuml.com/plantuml/
++' 3. Cole o código na área de edição.
++' 4. Clique em "Refresh" ou aguarde carregar para visualizar o diagrama.
++' 5. Você pode exportar a imagem como PNG, SVG ou PDF diretamente do site.
++' ============================================================================
++
++@startuml
++!theme plain
++
++class MainApp {
++  private hidrometro: Hidrometro
++  private controladorAPI: ControladorAPI
++  private simulationExecutor: ScheduledExecutorService
++  ~ display: Display
++  ~ main(String[] args): void
++  public start(Stage primaryStage): void
++  ~ Hidrometro(): new
++  ~ Display(primaryStage): new
++  ~ ControladorAPI(hidrometro): new
++  ~ 100ms(10x por segundo): cada
++  public stop(): void
++}
++Application <|-- MainApp
++
++class ControladorAPI {
++  ~ hidrometro: Hidrometro
++  private app: Javalin
++  ~ app: DTOs
++  ~ ControladorAPI(Hidrometro hidrometro): public
++  public iniciar(): void
++  public parar(): void
++}
++
++class DadosHidrometro {
++  ~ consumoTotalM3: double
++  ~ pressaoAtualKpa: double
++  ~ estado: String
++  ~ consumoTotalM3: return
++  ~ pressaoAtualKpa: return
++  ~ estado: return
++  ~ DadosHidrometro(double consumoTotalM3, double pressaoAtualKpa, String estado): public
++  public getConsumoTotalM3(): double
++  public getPressaoAtualKpa(): double
++  public getEstado(): String
++}
++
++class Hidrometro {
++  private estadoAtual: EstadoHidrometro
++  ~ observers: List<Display>
++  ~ random: Random
++  private consumoTotalM3: double
++  private pressaoAtualKpa: double
++  ~ pressaoBaseKpa: double
++  ~ vazaoLPS: double
++  ~ dados: DadosHidrometro
++  ~ flutuacao: double
++  ~ vazaoLPS: return
++  ~ pressaoAtualKpa: return
++  ~ Random(): new
++  ~ Hidrometro(): public
++  ~ EstadoComAgua(this): new
++  public setEstado(EstadoHidrometro novoEstado): void
++  public adicionarObserver(Display observer): void
++  public notificarObservers(): void
++  public simularPassagemDeTempo(double deltaTime): void
++  ~ if(estadoAtual instanceof EstadoComAgua && random.nextDouble(): água
++  ~ setEstado(new EstadoSemAgua(this): tick
++  public getDadosAtuais(): DadosHidrometro
++  ~ DadosHidrometro(consumoTotalM3, pressaoAtualKpa, estadoAtual.getClass(): new
++  public getVazaoLPS(): double
++  public adicionarConsumo(double volumeAdicionalM3): void
++  public getPressaoAtualKpa(): double
++}
++
++class EstadoComAgua {
++  ~ hidrometro: Hidrometro
++  ~ vazaoM3s: double
++  ~ volumeAdicional: double
++  ~ EstadoComAgua(Hidrometro hidrometro): public
++  public medirFluxo(double deltaTime): void
++}
++EstadoHidrometro <|.. EstadoComAgua
++
++class EstadoComAr {
++  ~ hidrometro: Hidrometro
++  ~ random: Random
++  private tempoComAr: double
++  ~ fatorPressao: double
++  ~ vazaoFicticiaLPS: double
++  ~ vazaoM3s: double
++  ~ volumeAdicional: double
++  ~ Random(): new
++  ~ EstadoComAr(Hidrometro hidrometro): public
++  public medirFluxo(double deltaTime): void
++  ~ if(tempoComAr > 3 + random.nextInt(5): normal
++}
++EstadoHidrometro <|.. EstadoComAr
++
++interface EstadoHidrometro {
++  ~ medirFluxo(double deltaTime): void
++}
++
++class EstadoSemAgua {
++  ~ hidrometro: Hidrometro
++  ~ random: Random
++  private tempoSemAgua: double
++  ~ Random(): new
++  ~ EstadoSemAgua(Hidrometro hidrometro): public
++  public medirFluxo(double deltaTime): void
++  ~ if(tempoSemAgua > 5 + random.nextInt(10): ar
++}
++EstadoHidrometro <|.. EstadoSemAgua
++
++class Display {
++  ~ stage: Stage
++  ~ consumoText: Text
++  ~ pressaoText: Text
++  ~ estadoText: Text
++  ~ consumoDigitalText: Text
++  private ponteiroLitros: Line
++  private ponteiroDecimosDeLitros: Line
++  private rotLitros: Rotate
++  private rotDecimosDeLitros: Rotate
++  ~ root: VBox
++  ~ comprimentoPonteiro: double
++  ~ meterPane: StackPane
++  ~ basePath: String
++  ~ baseStream: InputStream
++  ~ baseImage: Image
++  ~ baseView: ImageView
++  ~ espessuraPonteiro: double
++  ~ infoBox: VBox
++  ~ scene: Scene
++  ~ consumo: double
++  ~ metrosCubicos: int
++  ~ consumoEmLitros: double
++  ~ valLitros: double
++  ~ valDecimosDeLitros: double
++  ~ anguloLitros: double
++  ~ anguloDecimos: double
++  ~ Text(): new
++  ~ Text(): new
++  ~ Text(): new
++  ~ Text(): new
++  ~ Display(Stage stage): public
++  private initUI(): void
++  ~ VBox(15): new
++  ~ StackPane(): new
++  ~ NullPointerException("Não foi possível encontrar o arquivo de imagem base. Verifique a pasta 'src/main/resources/images'"): new
++  ~ Image(baseStream): new
++  ~ ImageView(baseImage): new
++  ~ Line(0, 0, 0, comprimentoPonteiro): new
++  ~ Line(0, 0, 0, comprimentoPonteiro): new
++  ~ LITROS(Superior Direito): DE
++  ~ LITROS(Inferior Esquerdo): de
++  ~ Rotate(0, 0, comprimentoPonteiro): new
++  ~ Rotate(0, 0, comprimentoPonteiro): new
++  ~ VBox(5): new
++  ~ Scene(root, 400, 500): new
++  public update(DadosHidrometro dados): void
++}
++
++@enduml
+\ No newline at end of file
+diff --git a/docs/Diagrama_de_Classes.pdf.pdf b/docs/Diagrama_de_Classes.pdf.pdf
+new file mode 100644
+index 0000000..fdb232f
+--- /dev/null
++++ b/docs/Diagrama_de_Classes.pdf.pdf
+@@ -0,0 +1,2 @@
++DIAGRAMA DE CLASSES - SIMULADOR DE HIDRÔMETRO ANALÓGICO
++
+diff --git a/pom.xml b/pom.xml
+index b490ce0..5f623c7 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -5,18 +5,19 @@
+     <modelVersion>4.0.0</modelVersion>
+ 
+     <groupId>com.example</groupId>
+-    <artifactId>0</artifactId>
++    <artifactId>sha-app</artifactId>
+     <version>1.0-SNAPSHOT</version>
+ 
+     <properties>
+         <maven.compiler.source>17</maven.compiler.source>
+         <maven.compiler.target>17</maven.compiler.target>
+         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+-        <javafx.version>17.0.2</javafx.version>
++        <javafx.version>17.0.16</javafx.version>
+         <javalin.version>5.6.1</javalin.version>
+     </properties>
+ 
+     <dependencies>
++        <!-- JavaFX -->
+         <dependency>
+             <groupId>org.openjfx</groupId>
+             <artifactId>javafx-controls</artifactId>
+@@ -28,12 +29,14 @@
+             <version>${javafx.version}</version>
+         </dependency>
+ 
++        <!-- Javalin -->
+         <dependency>
+             <groupId>io.javalin</groupId>
+             <artifactId>javalin</artifactId>
+             <version>${javalin.version}</version>
+         </dependency>
+ 
++        <!-- Logging -->
+         <dependency>
+             <groupId>org.slf4j</groupId>
+             <artifactId>slf4j-simple</artifactId>
+@@ -43,6 +46,7 @@
+ 
+     <build>
+         <plugins>
++            <!-- Compilador -->
+             <plugin>
+                 <groupId>org.apache.maven.plugins</groupId>
+                 <artifactId>maven-compiler-plugin</artifactId>
+@@ -52,18 +56,28 @@
+                     <target>17</target>
+                 </configuration>
+             </plugin>
++
++            <!-- JavaFX Plugin -->
+             <plugin>
+                 <groupId>org.openjfx</groupId>
+                 <artifactId>javafx-maven-plugin</artifactId>
+                 <version>0.0.8</version>
+                 <executions>
+                     <execution>
+-                        <id>default-cli</id>
+-                        <configuration>
+-                            <mainClass>com.meu_pacote.MainApp</mainClass>
+-                        </configuration>
++                        <goals>
++                            <goal>run</goal>
++                        </goals>
+                     </execution>
+                 </executions>
++                <configuration>
++                    <mainClass>com.meu_pacote.MainApp</mainClass>
++                    <jvmArgs>
++                        --module-path
++                        C:\Users\irene\Downloads\openjfx-17.0.16_windows-x64_bin-sdk\javafx-sdk-17.0.16\lib
++                        --add-modules
++                        javafx.controls,javafx.fxml
++                    </jvmArgs>
++                </configuration>
+             </plugin>
+         </plugins>
+ 
+@@ -76,4 +90,4 @@
+             </resource>
+         </resources>
+     </build>
+-</project>
+\ No newline at end of file
++</project>
+diff --git a/src/main/java/com/meu_pacote/ui/Display.java b/src/main/java/com/meu_pacote/ui/Display.java
+index 31cfa03..109e0c9 100644
+--- a/src/main/java/com/meu_pacote/ui/Display.java
++++ b/src/main/java/com/meu_pacote/ui/Display.java
+@@ -5,24 +5,27 @@ import javafx.application.Platform;
+ import javafx.geometry.Insets;
+ import javafx.geometry.Pos;
+ import javafx.scene.Scene;
++import javafx.scene.effect.DropShadow;
+ import javafx.scene.image.Image;
+ import javafx.scene.image.ImageView;
+-import javafx.scene.layout.StackPane;
+-import javafx.scene.layout.VBox;
++import javafx.scene.layout.*;
+ import javafx.scene.paint.Color;
+ import javafx.scene.shape.Line;
+ import javafx.scene.text.Font;
+ import javafx.scene.text.FontWeight;
+ import javafx.scene.text.Text;
+-import javafx.stage.Stage;
+ import javafx.scene.transform.Rotate;
++import javafx.stage.Stage;
+ 
+ import java.io.InputStream;
+ 
+ public class Display {
+     private final Stage stage;
+ 
+-    // Elementos da UI
++    private final Text consumoLabel = new Text("Consumo Total");
++    private final Text pressaoLabel = new Text("Pressão");
++    private final Text estadoLabel = new Text("Estado");
++
+     private final Text consumoText = new Text();
+     private final Text pressaoText = new Text();
+     private final Text estadoText = new Text();
+@@ -34,106 +37,138 @@ public class Display {
+     private Rotate rotLitros;
+     private Rotate rotDecimosDeLitros;
+ 
+-
+     public Display(Stage stage) {
+         this.stage = stage;
+         initUI();
+     }
+ 
+     private void initUI() {
+-        stage.setTitle("Simulador de Hidrômetro");
++        stage.setTitle("💧 Simulador de Hidrômetro");
+ 
+-        VBox root = new VBox(15);
+-        root.setPadding(new Insets(10));
+-        root.setAlignment(Pos.CENTER);
+-        root.setStyle("-fx-background-color: #2B2B2B;");
++        VBox root = new VBox(25);
++        root.setPadding(new Insets(25));
++        root.setAlignment(Pos.TOP_CENTER);
++        root.setStyle("-fx-background-color: linear-gradient(to bottom, #e8f0ff, #cfd9f5);");
++
++        // ---------- CABEÇALHO ----------
++        ImageView icon = null;
++        try {
++            InputStream iconStream = getClass().getClassLoader().getResourceAsStream("images/water-icon.png");
++            if (iconStream != null) {
++                icon = new ImageView(new Image(iconStream));
++                icon.setFitWidth(60);
++                icon.setPreserveRatio(true);
++            }
++        } catch (Exception ignored) {}
+ 
++        Text titulo = new Text("Simulador de Hidrômetro Analógico");
++        titulo.setFont(Font.font("Segoe UI", FontWeight.BOLD, 24));
++        titulo.setFill(Color.web("#000000"));
+ 
+-        final double comprimentoPonteiro = 20; // Comprimento da linha
++        VBox header = new VBox(10);
++        header.setAlignment(Pos.CENTER);
++        if (icon != null) header.getChildren().add(icon);
++        header.getChildren().add(titulo);
+ 
++        // ---------- HIDRÔMETRO ----------
+         StackPane meterPane = new StackPane();
++        meterPane.setPrefHeight(300);
+ 
+         try {
+-            String basePath = "/images/hidrometro-base.png";
+-
+-            InputStream baseStream = Display.class.getResourceAsStream(basePath);
+-
+-            if (baseStream == null) {
+-                throw new NullPointerException("Não foi possível encontrar o arquivo de imagem base. Verifique a pasta 'src/main/resources/images'");
+-            }
++            InputStream baseStream = getClass().getClassLoader().getResourceAsStream("images/hidrometro-base.png");
++            if (baseStream == null)
++                throw new NullPointerException("Imagem base não encontrada");
+ 
+             Image baseImage = new Image(baseStream);
+             ImageView baseView = new ImageView(baseImage);
+-            baseView.setFitWidth(350);
++            baseView.setFitWidth(380);
+             baseView.setPreserveRatio(true);
+ 
+-            double espessuraPonteiro = 2;
+-
+-            ponteiroLitros = new Line(0, 0, 0, comprimentoPonteiro);
+-            ponteiroLitros.setStroke(Color.RED);
+-            ponteiroLitros.setStrokeWidth(espessuraPonteiro);
+-
+-            ponteiroDecimosDeLitros = new Line(0, 0, 0, comprimentoPonteiro);
+-            ponteiroDecimosDeLitros.setStroke(Color.RED);
+-            ponteiroDecimosDeLitros.setStrokeWidth(espessuraPonteiro);
+-
+-            // Ponteiro de DÉCIMOS DE LITROS (Superior Direito)
+-            ponteiroDecimosDeLitros.setTranslateX(45);
+-            ponteiroDecimosDeLitros.setTranslateY(5);
++            DropShadow sombra = new DropShadow(5, Color.rgb(0, 0, 0, 0.3));
+ 
+-            // Ponteiro de LITROS (Inferior Esquerdo)
+-            ponteiroLitros.setTranslateX(0);
+-            ponteiroLitros.setTranslateY(40);
++            double comprimento = 12;
++            double espessura = 2.0;
+ 
+-            // Posição do texto digital
+-            consumoDigitalText.setFont(Font.font("MONOSPACED", FontWeight.BOLD, 23));
+-            consumoDigitalText.setFill(Color.BLACK);
+-            consumoDigitalText.setTranslateY(-31);
++            ponteiroLitros = new Line(0, 0, 0, comprimento);
++            ponteiroLitros.setStroke(Color.RED);
++            ponteiroLitros.setStrokeWidth(espessura);
++            ponteiroLitros.setEffect(sombra);
++            ponteiroLitros.setTranslateX(1);
++            ponteiroLitros.setTranslateY(45);
++
++            ponteiroDecimosDeLitros = new Line(0, 0, 0, comprimento);
++            ponteiroDecimosDeLitros.setStroke(Color.DARKRED);
++            ponteiroDecimosDeLitros.setStrokeWidth(espessura);
++            ponteiroDecimosDeLitros.setEffect(sombra);
++            ponteiroDecimosDeLitros.setTranslateX(46);
++            ponteiroDecimosDeLitros.setTranslateY(8);
++
++            consumoDigitalText.setFont(Font.font("Consolas", FontWeight.BOLD, 26));
++            consumoDigitalText.setFill(Color.web("#001b28"));
++            consumoDigitalText.setTranslateY(-30);
+             consumoDigitalText.setTranslateX(2);
+ 
+             meterPane.getChildren().addAll(baseView, ponteiroLitros, ponteiroDecimosDeLitros, consumoDigitalText);
+ 
++            rotLitros = new Rotate(0, 0, comprimento);
++            rotDecimosDeLitros = new Rotate(0, 0, comprimento);
++            ponteiroLitros.getTransforms().add(rotLitros);
++            ponteiroDecimosDeLitros.getTransforms().add(rotDecimosDeLitros);
++
+         } catch (Exception e) {
+-            System.err.println("Erro ao carregar imagens: " + e.getMessage());
+-            meterPane.getChildren().add(new Text("Erro ao carregar imagens."));
+-            ponteiroLitros = null;
++            System.err.println("⚠️ Erro ao carregar o hidrômetro: " + e.getMessage());
++            meterPane.getChildren().add(new Text("Erro ao carregar imagem."));
+         }
+ 
+-        if (ponteiroLitros != null) {
++        // ---------- INFORMAÇÕES ----------
++        HBox infoBox = new HBox(20);
++        infoBox.setAlignment(Pos.CENTER);
++        infoBox.setPadding(new Insets(15, 10, 30, 10));
+ 
+-            rotLitros = new Rotate(0, 0, comprimentoPonteiro);
+-            ponteiroLitros.getTransforms().add(rotLitros);
++        consumoLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 13));
++        pressaoLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 13));
++        estadoLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 13));
+ 
+-            rotDecimosDeLitros = new Rotate(0, 0, comprimentoPonteiro);
+-            ponteiroDecimosDeLitros.getTransforms().add(rotDecimosDeLitros);
+-        }
++        consumoLabel.setFill(Color.web("#01579b"));
++        pressaoLabel.setFill(Color.web("#1b5e20"));
++        estadoLabel.setFill(Color.web("#b71c1c"));
+ 
+-        VBox infoBox = new VBox(5);
+-        infoBox.setAlignment(Pos.CENTER);
+-        infoBox.setPadding(new Insets(10));
++        consumoText.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
++        pressaoText.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
++        estadoText.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
+ 
+-        consumoText.setFont(Font.font("Courier New", FontWeight.NORMAL, 16));
+-        pressaoText.setFont(Font.font("Arial", 14));
+-        estadoText.setFont(Font.font("Arial", 14));
++        consumoText.setFill(Color.web("#0277bd"));
++        pressaoText.setFill(Color.web("#2e7d32"));
++        estadoText.setFill(Color.web("#c62828"));
+ 
+-        consumoText.setFill(Color.LIGHTGRAY);
+-        pressaoText.setFill(Color.LIGHTGRAY);
+-        estadoText.setFill(Color.LIGHTGRAY);
++        VBox cardConsumo = criarCard(consumoLabel, consumoText, Color.web("#e1f5fe"));
++        VBox cardPressao = criarCard(pressaoLabel, pressaoText, Color.web("#e8f5e9"));
++        VBox cardEstado = criarCard(estadoLabel, estadoText, Color.web("#ffebee"));
+ 
+-        infoBox.getChildren().addAll(consumoText, pressaoText, estadoText);
++        infoBox.getChildren().addAll(cardConsumo, cardPressao, cardEstado);
+ 
+-        root.getChildren().addAll(meterPane, infoBox);
++        root.getChildren().addAll(header, meterPane, infoBox);
+ 
+-        Scene scene = new Scene(root, 400, 500);
++        Scene scene = new Scene(root, 580, 700);
+         stage.setScene(scene);
+         stage.show();
+     }
+ 
++    private VBox criarCard(Text titulo, Text valor, Color corFundo) {
++        VBox card = new VBox(6, titulo, valor);
++        card.setAlignment(Pos.CENTER);
++        card.setPadding(new Insets(12));
++        card.setBackground(new Background(new BackgroundFill(corFundo, new CornerRadii(10), Insets.EMPTY)));
++        card.setEffect(new DropShadow(5, Color.rgb(0, 0, 0, 0.25)));
++        card.setPrefWidth(160);
++        return card;
++    }
++
+     public void update(DadosHidrometro dados) {
+         Platform.runLater(() -> {
+-            consumoText.setText(String.format("Consumo (texto): %.4f m³", dados.getConsumoTotalM3()));
+-            pressaoText.setText(String.format("Pressão: %.1f kPa", dados.getPressaoAtualKpa()));
+-            estadoText.setText("Estado: " + dados.getEstado());
++            consumoText.setText(String.format("%.4f m³", dados.getConsumoTotalM3()));
++            pressaoText.setText(String.format("%.1f kPa", dados.getPressaoAtualKpa()));
++            estadoText.setText(dados.getEstado());
+ 
+             if (ponteiroLitros == null) return;
+ 
+@@ -142,15 +177,11 @@ public class Display {
+             consumoDigitalText.setText(String.format("%05d", metrosCubicos));
+ 
+             double consumoEmLitros = consumo * 1000;
+-
+             double valLitros = Math.floor(consumoEmLitros) % 10;
+-            double valDecimosDeLitros = Math.floor(consumoEmLitros * 10) % 10;
+-
+-            double anguloLitros = valLitros * 36;
+-            double anguloDecimos = valDecimosDeLitros * 36;
++            double valDecimos = Math.floor(consumoEmLitros * 10) % 10;
+ 
+-            rotLitros.setAngle(anguloLitros);
+-            rotDecimosDeLitros.setAngle(anguloDecimos);
++            rotLitros.setAngle(valLitros * 36);
++            rotDecimosDeLitros.setAngle(valDecimos * 36);
+         });
+     }
+ }
+\ No newline at end of file
