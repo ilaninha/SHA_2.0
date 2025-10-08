@@ -1,12 +1,11 @@
 # Simulador de Hidrômetro Analógico
-## SHA-2.0
+
 ![Java](https://img.shields.io/badge/Java-17-blue.svg) ![Maven](https://img.shields.io/badge/Maven-3.8-red.svg) ![JavaFX](https://img.shields.io/badge/JavaFX-17-orange.svg) ![Javalin](https://img.shields.io/badge/Javalin-5.6-brightgreen.svg)
 
 > Software para simular o funcionamento de um medidor de água analógico. O propósito principal é fornecer uma interface visual e uma API REST para que outros softwares possam consumir dados de medição sem depender de um hardware real.
 
-Este projeto foi desenvolvido como uma solução robusta para simular as diversas condições de operação de um hidrômetro, incluindo fluxo normal, falta de água e passagem de ar.
-
-![Screenshot do Simulador](src/main/resources/com/meu_pacote/images/hidrometro-base.png)
+Aplicação **orientada a objetos em Java** que simula o funcionamento de um hidrômetro residencial, exibindo **vazão, volume e pressão em tempo real**.  
+Projeto acadêmico desenvolvido na disciplina **Padrões de Projeto — IFPB**.
 
 ## ✨ Funcionalidades
 
@@ -87,4 +86,4 @@ A API REST fornece acesso em tempo real aos dados do simulador.
 | `/api/status` | `GET`       | Retorna o estado operacional atual.     | `{"consumoTotalM3":1200.123, "pressaoAtualKpa":345.6, "estado":"EstadoComAgua"}` |
 
 ---
-Feito por ilaninha.
+Feito por Ilana Costa.
