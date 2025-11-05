@@ -17,6 +17,8 @@ Projeto acadêmico desenvolvido na disciplina **Padrões de Projeto — IFPB**.
 * **Eventos Aleatórios:** A simulação inclui eventos estocásticos, como a chance de ocorrer uma "falta de água" para aumentar o realismo.
 * **Flutuação de Pressão:** A pressão da água não é estática, mas flutua de forma realista em torno de um valor base, utilizando uma distribuição Gaussiana.
 * **API REST para Integração:** Expõe os dados da simulação em tempo real através de endpoints REST, permitindo que sistemas externos monitorem o hidrômetro.
+* **Façade Singleton + CLI:** Uma **Fachada** orquestra simulação, UI, API e snapshots.
+* **Cliente CLI** controla tudo por terminal.
 
 ## 🛠️ Tecnologias Utilizadas
 

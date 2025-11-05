@@ -10,15 +10,20 @@ import java.util.List;
 import java.util.Random;
 
 public class Hidrometro {
+
     private EstadoHidrometro estadoAtual;
     private final List<Display> observers = new ArrayList<>();
     private final Random random = new Random();
 
+    // ---- dados da simulação ----
+    private volatile double consumoTotalM3 = 1200.0;
 
-    private double consumoTotalM3 = 1200.0;
-    private double pressaoAtualKpa = 350.0;
-    private final double pressaoBaseKpa = 350.0;
-    private final double vazaoLPS = 0.5; // Vazão constante de Litros por Segundo
+    // pressão atual é calculada a partir da base + flutuação
+    private volatile double pressaoAtualKpa = 350.0;
+    private volatile double pressaoBaseKpa = 350.0;
+
+    // vazão (L/s) agora mutável p/ permitir modificaVazaoSHA()
+    private volatile double vazaoLPS = 0.5;
 
     public Hidrometro() {
         this.estadoAtual = new EstadoComAgua(this); // Estado inicial
@@ -41,15 +46,15 @@ public class Hidrometro {
     }
 
     public void simularPassagemDeTempo(double deltaTime) {
-        // Simula flutuação de pressão
-        double flutuacao = random.nextGaussian() * 10; // Desvio padrão de 10 kPa
+        // Flutuação gaussiana de pressão
+        double flutuacao = random.nextGaussian() * 10; // desvio-padrão ~10 kPa
         this.pressaoAtualKpa = pressaoBaseKpa + flutuacao;
 
-        // Delega o cálculo do fluxo para o estado atual
+        // Delegar o cálculo de fluxo/consumo ao estado atual
         this.estadoAtual.medirFluxo(deltaTime);
 
-        // Lógica de evento aleatório para falta de água
-        if (estadoAtual instanceof EstadoComAgua && random.nextDouble() < 0.01) { // 1% de chance por tick
+        // Evento aleatório: 1% de chance de falta d'água por tick quando em EstadoComAgua
+        if (estadoAtual instanceof EstadoComAgua && random.nextDouble() < 0.01) {
             setEstado(new EstadoSemAgua(this));
         }
     }
@@ -62,16 +67,25 @@ public class Hidrometro {
         );
     }
 
-    // Getters e Setters que serão usados pelos estados
     public double getVazaoLPS() {
         return vazaoLPS;
+    }
+
+    public double getPressaoAtualKpa() {
+        return pressaoAtualKpa;
     }
 
     public void adicionarConsumo(double volumeAdicionalM3) {
         this.consumoTotalM3 += volumeAdicionalM3;
     }
 
-    public double getPressaoAtualKpa() {
-        return pressaoAtualKpa;
+    public synchronized void setVazaoLPS(double novaVazaoLPS) {
+        if (novaVazaoLPS < 0) novaVazaoLPS = 0;
+        this.vazaoLPS = novaVazaoLPS;
+    }
+
+    public synchronized void setPressaoBaseKpa(double novaPressaoBaseKpa) {
+        if (novaPressaoBaseKpa < 0) novaPressaoBaseKpa = 0;
+        this.pressaoBaseKpa = novaPressaoBaseKpa;
     }
 }
