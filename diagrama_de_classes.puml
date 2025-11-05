@@ -1,167 +1,201 @@
 ' ============================================================================
-' TUTORIAL PARA GERAR O DIAGRAMA
-' ============================================================================
-' 1. Copie todo este código.
-' 2. Acesse o site: https://www.plantuml.com/plantuml/
-' 3. Cole o código na área de edição.
-' 4. Clique em "Refresh" ou aguarde carregar para visualizar o diagrama.
-' 5. Você pode exportar a imagem como PNG, SVG ou PDF diretamente do site.
+' TUTORIAL
+' 1) Cole este código em https://www.plantuml.com/plantuml/
+' 2) Clique em "Refresh" para visualizar e exporte (PNG/SVG/PDF)
 ' ============================================================================
 
 @startuml
 !theme plain
+skinparam packageStyle rect
+skinparam classAttributeIconSize 0
 
-class MainApp {
-  private hidrometro: Hidrometro
-  private controladorAPI: ControladorAPI
-  private simulationExecutor: ScheduledExecutorService
-  ~ display: Display
-  ~ main(String[] args): void
-  public start(Stage primaryStage): void
-  ~ Hidrometro(): new
-  ~ Display(primaryStage): new
-  ~ ControladorAPI(hidrometro): new
-  ~ 100ms(10x por segundo): cada
-  public stop(): void
-}
-Application <|-- MainApp
-
-class ControladorAPI {
-  ~ hidrometro: Hidrometro
-  private app: Javalin
-  ~ app: DTOs
-  ~ ControladorAPI(Hidrometro hidrometro): public
-  public iniciar(): void
-  public parar(): void
+' ===================== PACOTES =====================
+package "com.meu_pacote" {
+  class MainApp
 }
 
-class DadosHidrometro {
-  ~ consumoTotalM3: double
-  ~ pressaoAtualKpa: double
-  ~ estado: String
-  ~ consumoTotalM3: return
-  ~ pressaoAtualKpa: return
-  ~ estado: return
-  ~ DadosHidrometro(double consumoTotalM3, double pressaoAtualKpa, String estado): public
-  public getConsumoTotalM3(): double
-  public getPressaoAtualKpa(): double
-  public getEstado(): String
+package "com.meu_pacote.facade" {
+  class HidrometroFachada <<Singleton>> {
+    - MAX_INSTANCIAS : int = 5
+    - instancias : ConcurrentHashMap<int, Instancia>
+    - api : ControladorAPIMulti
+    --
+    - passoMs : long
+    - imgOnGlobal : boolean
+    - imgIntervaloSeg : int
+    - imgDir : String
+    - imgW : int
+    - imgH : int
+    - imgFormato : String
+    --
+    + getInstance() : HidrometroFachada
+    + configSimuladorSHA(passoMs: long) : void
+    + configSimuladorSHA(passoMs: long, gerarImagens: boolean, intervaloSeg: int, dir: String, w: int, h: int, formato: String) : void
+    + criaSHA(id: int) : void
+    + criaSHAComUI(id: int, stage: Stage) : void
+    + finalizaSHA(id: int) : void
+    + modificaVazaoSHA(id: int, vazaoLPS: double) : void
+    + modificaVazaoSHA(id: int, vazaoLPS: double, pressaoBaseKpa: Double) : void
+    + habilitaGeraçaoImagemSHA(id: int, habilitar: boolean) : void
+    + status(id: int) : String
+    + statusAll() : String
+    + idsAtivos() : Set<Integer>
+    + snapshotMapaHidrometros() : Map<Integer, Hidrometro>
+  }
+
+  class Instancia {
+    - id : int
+    - hidrometro : Hidrometro
+    - stage : Stage
+    - display : Display
+    --
+    - tickExec : ScheduledExecutorService
+    - tickTask : ScheduledFuture<?>
+    - imgExec : ScheduledExecutorService
+    - imgTask : ScheduledFuture<?>
+  }
 }
 
-class Hidrometro {
-  private estadoAtual: EstadoHidrometro
-  ~ observers: List<Display>
-  ~ random: Random
-  private consumoTotalM3: double
-  private pressaoAtualKpa: double
-  ~ pressaoBaseKpa: double
-  ~ vazaoLPS: double
-  ~ dados: DadosHidrometro
-  ~ flutuacao: double
-  ~ vazaoLPS: return
-  ~ pressaoAtualKpa: return
-  ~ Random(): new
-  ~ Hidrometro(): public
-  ~ EstadoComAgua(this): new
-  public setEstado(EstadoHidrometro novoEstado): void
-  public adicionarObserver(Display observer): void
-  public notificarObservers(): void
-  public simularPassagemDeTempo(double deltaTime): void
-  ~ if(estadoAtual instanceof EstadoComAgua && random.nextDouble(): água
-  ~ setEstado(new EstadoSemAgua(this): tick
-  public getDadosAtuais(): DadosHidrometro
-  ~ DadosHidrometro(consumoTotalM3, pressaoAtualKpa, estadoAtual.getClass(): new
-  public getVazaoLPS(): double
-  public adicionarConsumo(double volumeAdicionalM3): void
-  public getPressaoAtualKpa(): double
+package "com.meu_pacote.api" {
+  class ControladorAPIMulti {
+    - fachada : HidrometroFachada
+    - app : Javalin
+    - porta : int
+    --
+    + ControladorAPIMulti(fachada: HidrometroFachada, porta: int = 7070)
+    + iniciar() : void
+    + parar() : void
+  }
 }
 
-class EstadoComAgua {
-  ~ hidrometro: Hidrometro
-  ~ vazaoM3s: double
-  ~ volumeAdicional: double
-  ~ EstadoComAgua(Hidrometro hidrometro): public
-  public medirFluxo(double deltaTime): void
+package "com.meu_pacote.model" {
+  class Hidrometro {
+    - estadoAtual : EstadoHidrometro
+    - observers : List<Display>
+    - random : Random
+    --
+    - consumoTotalM3 : double
+    - pressaoAtualKpa : double
+    - pressaoBaseKpa : double
+    - vazaoLPS : double
+    --
+    + Hidrometro()
+    + setEstado(novo: EstadoHidrometro) : void
+    + adicionarObserver(obs: Display) : void
+    + notificarObservers() : void
+    + simularPassagemDeTempo(deltaTime: double) : void
+    + getDadosAtuais() : DadosHidrometro
+    + getVazaoLPS() : double
+    + getPressaoAtualKpa() : double
+    + adicionarConsumo(volM3: double) : void
+    + setVazaoLPS(vazao: double) : void
+    + setPressaoBaseKpa(pressao: double) : void
+  }
+
+  class DadosHidrometro {
+    - consumoTotalM3 : double
+    - pressaoAtualKpa : double
+    - estado : String
+    --
+    + DadosHidrometro(consumo: double, pressao: double, estado: String)
+    + getConsumoTotalM3() : double
+    + getPressaoAtualKpa() : double
+    + getEstado() : String
+  }
 }
+
+package "com.meu_pacote.state" {
+  interface EstadoHidrometro {
+    + medirFluxo(deltaTime: double) : void
+  }
+
+  class EstadoComAgua {
+    - hidrometro : Hidrometro
+    + EstadoComAgua(h: Hidrometro)
+    + medirFluxo(deltaTime: double) : void
+  }
+
+  class EstadoSemAgua {
+    - hidrometro : Hidrometro
+    - random : Random
+    - tempoSemAgua : double
+    + EstadoSemAgua(h: Hidrometro)
+    + medirFluxo(deltaTime: double) : void
+  }
+
+  class EstadoComAr {
+    - hidrometro : Hidrometro
+    - random : Random
+    - tempoComAr : double
+    + EstadoComAr(h: Hidrometro)
+    + medirFluxo(deltaTime: double) : void
+  }
+}
+
+package "com.meu_pacote.ui" {
+  class Display {
+    - stage : Stage
+    - scene : Scene
+    - baseImage : Image
+    --
+    + Display(stage: Stage)
+    + update(dados: DadosHidrometro) : void
+  }
+}
+
+package "com.meu_pacote.cli" {
+  class ClienteCLI {
+    - api : HidrometroFachada
+    - in : Scanner
+    - fxInitialized : boolean
+    --
+    + main(args: String[]) : void
+    - run() : void
+  }
+}
+
+' ===================== RELACIONAMENTOS =====================
+
+' MainApp usa a Façade
+MainApp --> HidrometroFachada : usa
+
+' CLI usa a Façade
+ClienteCLI --> HidrometroFachada : controla
+
+' Façade compõe Instancias (1..N)
+HidrometroFachada "1" o-- "*" Instancia
+
+' Cada Instancia possui um Hidrometro (com UI opcional)
+Instancia *-- Hidrometro
+Instancia o-- Display
+Instancia o-- Stage
+
+' Façade mantém referência à API multi
+HidrometroFachada o-- ControladorAPIMulti
+
+' Modelo/Estado/Observer
+Hidrometro ..> DadosHidrometro : produz
+Hidrometro "1" o-- "*" Display : observers
+Hidrometro *- EstadoHidrometro
 EstadoHidrometro <|.. EstadoComAgua
-
-class EstadoComAr {
-  ~ hidrometro: Hidrometro
-  ~ random: Random
-  private tempoComAr: double
-  ~ fatorPressao: double
-  ~ vazaoFicticiaLPS: double
-  ~ vazaoM3s: double
-  ~ volumeAdicional: double
-  ~ Random(): new
-  ~ EstadoComAr(Hidrometro hidrometro): public
-  public medirFluxo(double deltaTime): void
-  ~ if(tempoComAr > 3 + random.nextInt(5): normal
-}
+EstadoHidrometro <|.. EstadoSemAgua
 EstadoHidrometro <|.. EstadoComAr
 
-interface EstadoHidrometro {
-  ~ medirFluxo(double deltaTime): void
-}
+' API lê dados do(s) Hidrometro(s) via Façade
+ControladorAPIMulti ..> HidrometroFachada : consulta IDs/dados
 
-class EstadoSemAgua {
-  ~ hidrometro: Hidrometro
-  ~ random: Random
-  private tempoSemAgua: double
-  ~ Random(): new
-  ~ EstadoSemAgua(Hidrometro hidrometro): public
-  public medirFluxo(double deltaTime): void
-  ~ if(tempoSemAgua > 5 + random.nextInt(10): ar
-}
-EstadoHidrometro <|.. EstadoSemAgua
+' ===================== NOTAS =====================
+note right of HidrometroFachada
+Façade Singleton multi-instância:
+- Até 5 hidrômetros (1..5)
+- 1 thread por instância (ScheduledExecutor)
+- Snapshots opcionais por instância (UI)
+- API única: /api/list, /api/{id}/status, /api/{id}/data, /api/status
+end note
 
-class Display {
-  ~ stage: Stage
-  ~ consumoText: Text
-  ~ pressaoText: Text
-  ~ estadoText: Text
-  ~ consumoDigitalText: Text
-  private ponteiroLitros: Line
-  private ponteiroDecimosDeLitros: Line
-  private rotLitros: Rotate
-  private rotDecimosDeLitros: Rotate
-  ~ root: VBox
-  ~ comprimentoPonteiro: double
-  ~ meterPane: StackPane
-  ~ basePath: String
-  ~ baseStream: InputStream
-  ~ baseImage: Image
-  ~ baseView: ImageView
-  ~ espessuraPonteiro: double
-  ~ infoBox: VBox
-  ~ scene: Scene
-  ~ consumo: double
-  ~ metrosCubicos: int
-  ~ consumoEmLitros: double
-  ~ valLitros: double
-  ~ valDecimosDeLitros: double
-  ~ anguloLitros: double
-  ~ anguloDecimos: double
-  ~ Text(): new
-  ~ Text(): new
-  ~ Text(): new
-  ~ Text(): new
-  ~ Display(Stage stage): public
-  private initUI(): void
-  ~ VBox(15): new
-  ~ StackPane(): new
-  ~ NullPointerException("Não foi possível encontrar o arquivo de imagem base. Verifique a pasta 'src/main/resources/images'"): new
-  ~ Image(baseStream): new
-  ~ ImageView(baseImage): new
-  ~ Line(0, 0, 0, comprimentoPonteiro): new
-  ~ Line(0, 0, 0, comprimentoPonteiro): new
-  ~ LITROS(Superior Direito): DE
-  ~ LITROS(Inferior Esquerdo): de
-  ~ Rotate(0, 0, comprimentoPonteiro): new
-  ~ Rotate(0, 0, comprimentoPonteiro): new
-  ~ VBox(5): new
-  ~ Scene(root, 400, 500): new
-  public update(DadosHidrometro dados): void
-}
+note bottom of ClienteCLI
+CLI cria/finaliza/modifica por ID,
+headless ou com UI (abre Stage).
+end note
 
 @enduml
